@@ -17,6 +17,8 @@ final class UuidEntityIdNormalizerTest extends TestCase
 {
     private const DUMMY_UUID = '0195820a-af6e-7ec9-882e-53580038dd78';
 
+    private const INVALID_UUID = 'abcdefg';
+
     public function testNormalize(): void
     {
         // arrange
@@ -60,6 +62,23 @@ final class UuidEntityIdNormalizerTest extends TestCase
         self::assertSame(self::DUMMY_UUID, $denormalizedResult->getValue()->toRfc4122());
     }
 
+    /**
+     * An invalid Uuid should return null from the normalizer.
+     */
+    public function testInvalidUuidDenormalization(): void
+    {
+        // arrange
+        $uuidEntityIdClass = new readonly class extends UuidEntityId {};
+
+        $normalizer = new UuidEntityIdNormalizer();
+
+        // act
+        $invalidUuid = $normalizer->denormalize(self::INVALID_UUID, $uuidEntityIdClass::class);
+
+        // assert
+        self::assertNull($invalidUuid);
+    }
+
     public function testSupportsDenormalization(): void
     {
         // arrange
@@ -70,7 +89,7 @@ final class UuidEntityIdNormalizerTest extends TestCase
         // act + assert
         self::assertTrue($normalizer->supportsDenormalization(self::DUMMY_UUID, $uuidEntityIdClass::class));
         self::assertTrue($normalizer->supportsDenormalization(null, $uuidEntityIdClass::class));
-        self::assertTrue($normalizer->supportsDenormalization('019581f5-de09-7bb6-9586-653f6956f', $uuidEntityIdClass::class));
+        self::assertTrue($normalizer->supportsDenormalization(self::INVALID_UUID, $uuidEntityIdClass::class));
         self::assertFalse($normalizer->supportsDenormalization(self::DUMMY_UUID, \stdClass::class));
     }
 
