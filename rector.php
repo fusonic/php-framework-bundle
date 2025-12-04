@@ -7,8 +7,12 @@
 
 declare(strict_types=1);
 
+use Rector\CodeQuality\Rector\Identical\FlipTypeControlToUseExclusiveTypeRector;
 use Rector\Config\RectorConfig;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
+use Rector\Renaming\Rector\Name\RenameClassRector;
+use Rector\Symfony\Configs\Rector\Closure\ServiceSettersToSettersAutodiscoveryRector;
+use Rector\TypeDeclaration\Rector\ClassMethod\NarrowObjectReturnTypeRector;
 
 return RectorConfig::configure()
     ->withPaths([
@@ -18,23 +22,31 @@ return RectorConfig::configure()
     ])
     ->withPHPStanConfigs([__DIR__.'/phpstan.neon'])
     ->withPhpSets(php82: true)
+    ->withComposerBased(
+        doctrine: true,
+        phpunit: true,
+        symfony: true,
+    )
     ->withPreparedSets(
         deadCode: true,
         codeQuality: true,
         typeDeclarations: true,
         privatization: true,
         instanceOf: true,
-        strictBooleans: true,
         phpunitCodeQuality: true,
-        doctrineCodeQuality: true,
         symfonyCodeQuality: true,
         symfonyConfigs: true,
     )
-    ->withComposerBased(
-        doctrine: true,
-        phpunit: true,
-        symfony: true,
-    )
     ->withSkip([
+        FlipTypeControlToUseExclusiveTypeRector::class,
+        NarrowObjectReturnTypeRector::class => [
+            // ↓ Rule breaks BC layer
+            __DIR__.'/tests/Unit/Infrastructure/Doctrine/Types/UuidEntityIdTypeTest.php',
+        ],
         PreferPHPUnitThisCallRector::class,
+        RenameClassRector::class => [
+            // ↓ Rule breaks BC layer
+            __DIR__.'/tests/Unit/Infrastructure/Doctrine/Types/UuidEntityIdTypeTest.php',
+        ],
+        ServiceSettersToSettersAutodiscoveryRector::class,
     ]);
